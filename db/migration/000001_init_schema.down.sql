@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS entries;
+DROP TABLE IF EXISTS tranfers;
+DROP TABLE IF EXISTS accounts;
+-- Drop indexes for cleanup
+DROP INDEX IF EXISTS idx_tranfers_from_to;
+DROP INDEX IF EXISTS idx_tranfers_to_account_id;
+DROP INDEX IF EXISTS idx_tranfers_from_account_id;
+DROP INDEX IF EXISTS idx_entries_account_id;
+DROP INDEX IF EXISTS idx_accounts_owner;

@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15.2-alpine
+    container_name: go_api_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: go_api_db
+    ports:
+      - "5432:5432"
+    networks:
+      - go_api_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 50
+
+  # # Database Migration Service
+  # migrate:
+  #   image: migrate/migrate:v4.16.2
+  #   container_name: go_api_migrate
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   volumes:
+  #     - ./migrations:/migrations
+  #   command: [
+  #     "-path", "/migrations",
+  #     "-database", "postgres://postgres:password@postgres:5432/go_api_db?sslmode=disable",
+  #     "up"
+  #   ]
+  #   networks:
+  #     - go_api_network
+
+  # Go API Application with Hot Reload
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: go_api_app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=go_api_db
+      - DB_SSLMODE=disable
+      - GIN_MODE=debug
+    volumes:
+      - .:/app
+      - go_mod_cache:/go/pkg/mod
+    depends_on:
+      postgres:
+        condition: service_healthy
+      # migrate:
+      #   condition: service_completed_successfully
+    networks:
+      - go_api_network
+
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  go_mod_cache:
+
+networks:
+  go_api_network:
+    driver: bridge
