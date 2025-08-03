@@ -2,11 +2,11 @@ version: "2"
 
 sql:
   - engine: "postgresql"
-    schema: "db/migration/"
+    schema: "db/migrations/"
     queries: "db/query/"
     gen:
       go:
-        out: "db"
+        out: "db/sqlc/"
         package: "db"
         emit_json_tags: false
         emit_prepared_queries: false
