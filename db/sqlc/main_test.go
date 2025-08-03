@@ -18,7 +18,7 @@ var testDB *sql.DB
 
 const (
 	dbDriver = "postgres"
-	dbsource = "postgresql://postgres:postgres@localhost:5433/go_api_db?sslmode=disable"
+	dbsource = "postgresql://postgres:postgres@localhost:5432/go_api_db?sslmode=disable"
 )
 
 func TestMain(m *testing.M) {
@@ -37,16 +37,16 @@ func TestMain(m *testing.M) {
 
 func runMigrations() {
 	migration, err := migrate.New(
-		"file://../migrations", // adjust if needed
-		"postgres://postgres:postgres@localhost:5433/go_api_db?sslmode=disable",
+		"file://../migrations",
+		"postgres://postgres:postgres@localhost:5432/go_api_db?sslmode=disable",
 	)
 	if err != nil {
 		log.Fatalf("cannot create migrate instance: %v", err)
 	}
 	defer migration.Close()
 
-	// Drop the database if it exists
-	if err := migration.Down(); err != nil && err != migrate.ErrNoChange {
+	// Drop the database if it exists and datat
+	if err := migration.Down(); err != nil && err != migrate.ErrNoChange{
 		log.Printf("cannot drop database: %v", err)
 	}
 
