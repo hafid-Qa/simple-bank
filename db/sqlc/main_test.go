@@ -45,9 +45,9 @@ func runMigrations() {
 	}
 	defer migration.Close()
 
-	// Drop the database if it exists and datat
-	if err := migration.Down(); err != nil && err != migrate.ErrNoChange{
-		log.Printf("cannot drop database: %v", err)
+	// Clean state
+	if err := migration.Force(000001); err != nil && err != migrate.ErrNoChange {
+		log.Printf("cannot force version to 0: %v", err)
 	}
 
 	if err := migration.Up(); err != nil && err != migrate.ErrNoChange {
