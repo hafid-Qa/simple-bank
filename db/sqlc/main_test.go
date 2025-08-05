@@ -18,7 +18,7 @@ var testDB *sql.DB
 
 const (
 	dbDriver = "postgres"
-	dbsource = "postgresql://postgres:postgres@localhost:5432/go_api_db?sslmode=disable"
+	dbsource = "postgresql://postgres:postgres@localhost:5433/go_api_db?sslmode=disable"
 )
 
 func TestMain(m *testing.M) {
@@ -36,9 +36,10 @@ func TestMain(m *testing.M) {
 }
 
 func runMigrations() {
+	println("<<<<<<<<<<< RUINNING MIGRATION>>>>>>>>>>>>")
 	migration, err := migrate.New(
 		"file://../migrations",
-		"postgres://postgres:postgres@localhost:5432/go_api_db?sslmode=disable",
+		"postgres://postgres:postgres@localhost:5433/go_api_db?sslmode=disable",
 	)
 	if err != nil {
 		log.Fatalf("cannot create migrate instance: %v", err)
@@ -46,7 +47,7 @@ func runMigrations() {
 	defer migration.Close()
 
 	// Clean state
-	if err := migration.Force(000001); err != nil && err != migrate.ErrNoChange {
+	if err := migration.Down(); err != nil && err != migrate.ErrNoChange {
 		log.Printf("cannot force version to 0: %v", err)
 	}
 
