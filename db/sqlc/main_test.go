@@ -22,7 +22,8 @@ const (
 )
 
 func TestMain(m *testing.M) {
-	conn, err := sql.Open(dbDriver, dbsource)
+	var err error
+	testDB, err = sql.Open(dbDriver, dbsource)
 	if err != nil {
 		{
 			log.Fatalf("cannot connect to db: %v", err)
@@ -30,7 +31,7 @@ func TestMain(m *testing.M) {
 	}
 	// Run migrations
 	runMigrations()
-	testQueries = New(conn)
+	testQueries = New(testDB)
 	code := m.Run()
 	os.Exit(code)
 }
