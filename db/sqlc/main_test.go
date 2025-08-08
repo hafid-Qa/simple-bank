@@ -6,10 +6,10 @@ import (
 	"os"
 	"testing"
 
-	_ "github.com/lib/pq" // Import the PostgreSQL driver
+	_ "github.com/lib/pq"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/postgres" // Replace with your database driver
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
@@ -25,36 +25,48 @@ func TestMain(m *testing.M) {
 	var err error
 	testDB, err = sql.Open(dbDriver, dbsource)
 	if err != nil {
-		{
-			log.Fatalf("cannot connect to db: %v", err)
-		}
+		log.Fatalf("cannot connect to db: %v", err)
 	}
-	// Run migrations
-	runMigrations()
+
+	runMigrations()   // ensures version table + schema
+	truncateAllData() // clean data, keep schema + version table
 	testQueries = New(testDB)
+
 	code := m.Run()
 	os.Exit(code)
 }
 
 func runMigrations() {
-	println("<<<<<<<<<<< RUINNING MIGRATION>>>>>>>>>>>>")
-	migration, err := migrate.New(
-		"file://../migrations",
-		"postgres://postgres:postgres@localhost:5433/go_api_db?sslmode=disable",
+	m, err := migrate.New(
+		"file://../migrations", // adjust if your folder differs
+		dbsource,
 	)
 	if err != nil {
 		log.Fatalf("cannot create migrate instance: %v", err)
 	}
-	defer migration.Close()
+	defer m.Close()
 
-	// Clean state
-	if err := migration.Down(); err != nil && err != migrate.ErrNoChange {
-		log.Printf("cannot force version to 0: %v", err)
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("cannot apply migrations: %v", err)
 	}
+	log.Println("migrations applied (schema_migrations retained)")
+}
 
-	if err := migration.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatalf("cannot run migrate up: %v", err)
+func truncateAllData() {
+	const q = `
+DO $$
+DECLARE r record;
+BEGIN
+  FOR r IN
+    (SELECT tablename FROM pg_tables
+     WHERE schemaname='public'
+       AND tablename <> 'schema_migrations')
+  LOOP
+    EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE';
+  END LOOP;
+END $$;`
+	if _, err := testDB.Exec(q); err != nil {
+		log.Fatalf("cannot truncate tables: %v", err)
 	}
-
-	log.Println("migrations completed successfully")
+	log.Println("data truncated (schema + version table kept)")
 }
