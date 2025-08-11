@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"go_api/utils"
 	"log"
 	"os"
 	"testing"
@@ -16,30 +17,28 @@ import (
 var testQueries *Queries
 var testDB *sql.DB
 
-const (
-	dbDriver = "postgres"
-	dbsource = "postgresql://postgres:postgres@localhost:5433/go_api_db?sslmode=disable"
-)
-
 func TestMain(m *testing.M) {
-	var err error
-	testDB, err = sql.Open(dbDriver, dbsource)
+	config, err := utils.LoadConfig("../../")
+	if err != nil {
+		log.Fatalf("cannot load config: %v", err)
+	}
+	testDB, err = sql.Open(config.DB_DRIVER, config.TEST_DB_SOURCE)
 	if err != nil {
 		log.Fatalf("cannot connect to db: %v", err)
 	}
 
-	runMigrations()   // ensures version table + schema
-	truncateAllData() // clean data, keep schema + version table
+	runMigrations(config.TEST_DB_SOURCE) // ensures version table + schema
+	truncateAllData()                    // clean data, keep schema + version table
 	testQueries = New(testDB)
 
 	code := m.Run()
 	os.Exit(code)
 }
 
-func runMigrations() {
+func runMigrations(dbSource string) {
 	m, err := migrate.New(
 		"file://../migrations", // adjust if your folder differs
-		dbsource,
+		dbSource,
 	)
 	if err != nil {
 		log.Fatalf("cannot create migrate instance: %v", err)
