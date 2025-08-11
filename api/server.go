@@ -19,3 +19,7 @@ func newServer(store *db.Store) *Server {
 	server.router = router
 	return server
 }
+
+func errorResponse(err error) gin.H {
+	return gin.H{"error": err.Error()}
+}
