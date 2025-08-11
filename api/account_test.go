@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	mockdb "go_api/db/mock"
 	db "go_api/db/sqlc"
@@ -33,6 +35,7 @@ func TestGetAccount(t *testing.T) {
 	require.NoError(t, err)
 	server.router.ServeHTTP(recorder, req)
 	require.Equal(t, http.StatusOK, recorder.Code)
+	requireBodyMatchAccount(t, recorder.Body, account)
 
 }
 
@@ -43,4 +46,11 @@ func randomAccount() db.Account {
 		Balance:  utils.RandomAmount(),
 		Currency: utils.RandomCurrency(),
 	}
+}
+
+func requireBodyMatchAccount(t *testing.T, body *bytes.Buffer, account db.Account) {
+	var gotAccount db.Account
+	err := json.Unmarshal(body.Bytes(), &gotAccount)
+	require.NoError(t, err)
+	require.Equal(t, account, gotAccount)
 }
