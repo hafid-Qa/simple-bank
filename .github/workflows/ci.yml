@@ -12,6 +12,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5433
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: go_api_db
+      DB_SSLMODE: disable
 
     services:
       postgres:
@@ -41,4 +48,3 @@ jobs:
 
       - name: Test
         run: make test
-      
