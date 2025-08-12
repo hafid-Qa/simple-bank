@@ -1,0 +1,4 @@
+
+DROP TABLE users;
+ALTER TABLE accounts DROP CONSTRAINT IF EXISTS owner_currency_key;
+ALTER TABLE accounts DROP FOREIGN KEY IF EXISTS owner;
