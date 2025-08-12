@@ -9,6 +9,7 @@ import (
 )
 
 func TestTransferTx(t *testing.T) {
+	resetDB()
 	store := NewStore(testDB)
 	acc1 := createRandomAccount(t)
 	acc2 := createRandomAccount(t)
@@ -106,6 +107,7 @@ func TestTransferTx(t *testing.T) {
 	require.Equal(t, acc2.Balance+amount*int64(n), updatedAccount2.Balance)
 }
 func TestTransferTxDeadlock(t *testing.T) {
+	resetDB()
 	store := NewStore(testDB)
 	acc1 := createRandomAccount(t)
 	acc2 := createRandomAccount(t)

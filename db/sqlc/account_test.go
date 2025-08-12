@@ -11,8 +11,10 @@ import (
 )
 
 func createRandomAccount(t *testing.T) Account {
+	user := createRandomUser(t)
+
 	arg := CreateAccountParams{
-		Owner:    utils.RandomOwner(),
+		Owner:    user.Username,
 		Balance:  utils.RandomAmount(),
 		Currency: utils.RandomCurrency(),
 	}
@@ -28,10 +30,13 @@ func createRandomAccount(t *testing.T) Account {
 	return account
 }
 func TestCreateAccount(t *testing.T) {
+	resetDB()
 	createRandomAccount(t)
 }
 
 func TestGetAccount(t *testing.T) {
+	resetDB()
+
 	account := createRandomAccount(t)
 	account2, err := testQueries.GetAccount(context.Background(), account.ID)
 	require.NoError(t, err)
@@ -43,6 +48,7 @@ func TestGetAccount(t *testing.T) {
 }
 
 func TestUpdateAccount(t *testing.T) {
+	resetDB()
 	account := createRandomAccount(t)
 	data := UpdateAccountParams{
 		Balance: utils.RandomAmount(),
@@ -60,7 +66,8 @@ func TestUpdateAccount(t *testing.T) {
 
 }
 
-func TesTDeleteAccount(t *testing.T) {
+func TestDeleteAccount(t *testing.T) {
+	resetDB()
 	acc := createRandomAccount(t)
 
 	err := testQueries.DeleteAccount(context.Background(), acc.ID)
@@ -74,6 +81,7 @@ func TesTDeleteAccount(t *testing.T) {
 }
 
 func TestListAccounts(t *testing.T) {
+	resetDB()
 	for i := 0; i < 10; i++ {
 		createRandomAccount(t)
 	}

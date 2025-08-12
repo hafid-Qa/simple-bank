@@ -26,13 +26,27 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("cannot connect to db: %v", err)
 	}
-
+	DropAllTables()
+	// truncateAllData()                    // clean data, keep schema + version table
 	runMigrations(config.TEST_DB_SOURCE) // ensures version table + schema
-	truncateAllData()                    // clean data, keep schema + version table
 	testQueries = New(testDB)
 
 	code := m.Run()
 	os.Exit(code)
+	DropAllTables()
+}
+
+func testDBSource() string {
+	// If you use config, you can cache it or load once
+	config, err := utils.LoadConfig("../../")
+	if err != nil {
+		log.Fatalf("cannot load config: %v", err)
+	}
+	return config.TEST_DB_SOURCE
+}
+func resetDB() {
+	DropAllTables()
+	runMigrations(testDBSource())
 }
 
 func runMigrations(dbSource string) {
@@ -68,4 +82,23 @@ END $$;`
 		log.Fatalf("cannot truncate tables: %v", err)
 	}
 	log.Println("data truncated (schema + version table kept)")
+}
+
+func DropAllTables() {
+	const q = `
+DO $$
+DECLARE r record;
+BEGIN
+  FOR r IN
+    (SELECT tablename FROM pg_tables
+     WHERE schemaname='public'
+      )
+  LOOP
+    EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+  END LOOP;
+END $$;`
+	if _, err := testDB.Exec(q); err != nil {
+		log.Fatalf("cannot drop tables: %v", err)
+	}
+	log.Println("all tables dropped (schema + version table kept)")
 }
