@@ -32,16 +32,18 @@ func (maker *JWTMaker) CreateToken(userID string, duration time.Duration) (strin
 }
 
 func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
-	keyfunc := func(*jwt.Token) (interface{}, error) {
-		token.Method.(*jwt.SigningMethodHMAC)
+	keyfunc := func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodHMAC)
+		if !ok {
+			return nil, ErrInvalidToken
+		}
+		return []byte(maker.secretKey), nil
 	}
 
-	tkn, err := jwt.ParseWithClaims(token, &Payload{}, keyfunc)
-	if err != nil {
-		return nil, err
+	payload := &Payload{}
+	tkn, err := jwt.ParseWithClaims(token, payload, keyfunc)
+	if err != nil || !tkn.Valid {
+		return nil, ErrInvalidToken
 	}
-	if !tkn.Valid {
-		return nil, ErrExpiredToken
-	}
-	return claims, nil
+	return payload, nil
 }
