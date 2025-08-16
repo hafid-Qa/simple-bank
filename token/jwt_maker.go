@@ -1,6 +1,7 @@
 package token
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -42,7 +43,15 @@ func (maker *JWTMaker) VerifyToken(token string) (*Payload, error) {
 
 	payload := &Payload{}
 	tkn, err := jwt.ParseWithClaims(token, payload, keyfunc)
-	if err != nil || !tkn.Valid {
+	if err != nil {
+
+		verr, ok := err.(*jwt.ValidationError)
+		if ok && errors.Is(verr.Inner, ErrExpiredToken) {
+			return nil, ErrExpiredToken
+		}
+		return nil, ErrInvalidToken
+	}
+	if !tkn.Valid {
 		return nil, ErrInvalidToken
 	}
 	return payload, nil
