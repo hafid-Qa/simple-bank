@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/stretchr/testify/require"
 )
 
@@ -47,4 +48,22 @@ func TestExpiredJWTToken(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, ErrExpiredToken.Error())
 	require.Nil(t, payload)
+}
+
+func TestInvalidJWTTokenAlgNone(t *testing.T) {
+	payload, err := NewPayload(utils.RandomOwner(), time.Minute)
+	require.NoError(t, err)
+
+	token := jwt.NewWithClaims(jwt.SigningMethodNone, payload)
+	tokenString, err := token.SignedString(jwt.UnsafeAllowNoneSignatureType)
+	require.NoError(t, err)
+
+	maker, err := NewJWTMaker(utils.RandomString(32))
+	require.NoError(t, err)
+
+	payload, err = maker.VerifyToken(tokenString)
+	require.Error(t, err)
+	require.EqualError(t, err, ErrInvalidToken.Error())
+	require.Nil(t, payload)
+
 }
