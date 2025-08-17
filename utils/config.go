@@ -2,27 +2,30 @@ package utils
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	DB_HOST      string `mapstructure:"DB_HOST"`
-	DB_PORT      int32  `mapstructure:"DB_PORT"`
-	DB_USER      string `mapstructure:"DB_USER"`
-	DB_PASSWORD  string `mapstructure:"DB_PASSWORD"`
-	DB_NAME      string `mapstructure:"DB_NAME"`
-	TEST_DB_HOST string `mapstructure:"TEST_DB_HOST"`
-	TEST_DB_PORT int32  `mapstructure:"TEST_DB_PORT"`
-	DB_SSLMODE   string `mapstructure:"DB_SSLMODE"`
+	DbHost     string `mapstructure:"DB_HOST"`
+	DbPort     int32  `mapstructure:"DB_PORT"`
+	DbUser     string `mapstructure:"DB_USER"`
+	DbPassword string `mapstructure:"DB_PASSWORD"`
+	DbName     string `mapstructure:"DB_NAME"`
+	TestDbHost string `mapstructure:"TEST_DB_HOST"`
+	TestDbPort int32  `mapstructure:"TEST_DB_PORT"`
+	DbSslmode  string `mapstructure:"DB_SSLMODE"`
 
-	GIN_MODE      string `mapstructure:"GIN_MODE"`
-	PORT          int32  `mapstructure:"PORT"`
+	GinMode       string `mapstructure:"GIN_MODE"`
+	Port          int32  `mapstructure:"PORT"`
 	ServerAddress string `mapstructure:"SERVER_ADDRESS"`
 
-	DB_DRIVER      string `mapstructure:"DB_DRIVER"`
-	DB_SOURCE      string `mapstructure:"DB_SOURCE"`
-	TEST_DB_SOURCE string `mapstructure:"TEST_DB_SOURCE"`
+	DbDriver            string        `mapstructure:"DB_DRIVER"`
+	DbSource            string        `mapstructure:"DB_SOURCE"`
+	TestDbSource        string        `mapstructure:"TEST_DB_SOURCE"`
+	TokenSymmetricKey   string        `mapstructure:"TOKEN_SYMMETRIC_KEY"`
+	AccessTokenDuration time.Duration `mapstructure:"ACCESS_TOKEN_DURATION"`
 }
 
 func LoadConfig(path string) (config Config, err error) {
@@ -43,12 +46,12 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	// Set db
-	config.DB_SOURCE = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
-		config.DB_USER, config.DB_PASSWORD, config.DB_HOST, config.DB_PORT, config.DB_NAME, config.DB_SSLMODE)
+	config.DbDriver = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+		config.DbUser, config.DbPassword, config.DbHost, config.DbPort, config.DbName, config.DbSslmode)
 
-	config.TEST_DB_SOURCE = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
-		config.DB_USER, config.DB_PASSWORD, config.TEST_DB_HOST, config.TEST_DB_PORT, config.DB_NAME, config.DB_SSLMODE)
-	config.ServerAddress = fmt.Sprintf("%s:%d", config.DB_HOST, config.PORT)
+	config.TestDbSource = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+		config.DbUser, config.DbPassword, config.TestDbHost, config.TestDbPort, config.DbName, config.DbSslmode)
+	config.ServerAddress = fmt.Sprintf("%s:%d", config.DbHost, config.Port)
 
 	return
 }
