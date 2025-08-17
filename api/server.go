@@ -24,20 +24,12 @@ func NewServer(store db.Store, config utils.Config) (*Server, error) {
 		return nil, fmt.Errorf("failed to create token maker: %w", err)
 	}
 	server := &Server{config: config, store: store, tokenMaker: tokenMaker}
-	router := gin.Default()
+
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
 		v.RegisterValidation("currency", validCurrencies)
 	}
 
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
-	router.GET("/accounts", server.ListAccount)
-	router.DELETE("/accounts/:id", server.deleteAccount)
-
-	router.POST("/transfers", server.createTransfer)
-
-	router.POST("/users", server.createUser)
-	server.router = router
+	server.SetUpRouter()
 	return server, nil
 }
 
@@ -47,4 +39,18 @@ func (server *Server) Start(address string) error {
 
 func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
+}
+
+func (server *Server) SetUpRouter() {
+	router := gin.Default()
+	router.POST("/accounts", server.createAccount)
+	router.GET("/accounts/:id", server.getAccount)
+	router.GET("/accounts", server.ListAccount)
+	router.DELETE("/accounts/:id", server.deleteAccount)
+
+	router.POST("/transfers", server.createTransfer)
+
+	router.POST("/users", server.createUser)
+	router.POST("/users/login", server.loginUser)
+	server.router = router
 }

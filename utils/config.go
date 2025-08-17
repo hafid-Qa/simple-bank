@@ -46,7 +46,7 @@ func LoadConfig(path string) (config Config, err error) {
 	}
 
 	// Set db
-	config.DbDriver = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
+	config.DbSource = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
 		config.DbUser, config.DbPassword, config.DbHost, config.DbPort, config.DbName, config.DbSslmode)
 
 	config.TestDbSource = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
