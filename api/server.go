@@ -43,14 +43,16 @@ func errorResponse(err error) gin.H {
 
 func (server *Server) SetUpRouter() {
 	router := gin.Default()
-	router.POST("/accounts", server.createAccount)
-	router.GET("/accounts/:id", server.getAccount)
-	router.GET("/accounts", server.ListAccount)
-	router.DELETE("/accounts/:id", server.deleteAccount)
-
-	router.POST("/transfers", server.createTransfer)
-
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
+
+	authGroup := router.Group("/").Use(authMiddleware(server.tokenMaker))
+	authGroup.POST("/accounts", server.createAccount)
+	authGroup.GET("/accounts/:id", server.getAccount)
+	authGroup.GET("/accounts", server.ListAccount)
+	authGroup.DELETE("/accounts/:id", server.deleteAccount)
+
+	authGroup.POST("/transfers", server.createTransfer)
+
 	server.router = router
 }

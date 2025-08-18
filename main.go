@@ -10,12 +10,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver      = "postgres"
-	dbsource      = "postgresql://postgres:postgres@localhost:5432/go_api_db?sslmode=disable"
-	serverAddress = "localhost:8000"
-)
-
 func main() {
 	config, err := utils.LoadConfig(".")
 	if err != nil {

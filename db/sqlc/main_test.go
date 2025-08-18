@@ -22,13 +22,13 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("cannot load config: %v", err)
 	}
-	testDB, err = sql.Open(config.DB_DRIVER, config.TEST_DB_SOURCE)
+	testDB, err = sql.Open(config.DbDriver, config.TestDbSource)
 	if err != nil {
 		log.Fatalf("cannot connect to db: %v", err)
 	}
 	DropAllTables()
 	// truncateAllData()                    // clean data, keep schema + version table
-	runMigrations(config.TEST_DB_SOURCE) // ensures version table + schema
+	runMigrations(config.TestDbSource) // ensures version table + schema
 	testQueries = New(testDB)
 
 	code := m.Run()
@@ -42,7 +42,7 @@ func testDBSource() string {
 	if err != nil {
 		log.Fatalf("cannot load config: %v", err)
 	}
-	return config.TEST_DB_SOURCE
+	return config.TestDbSource
 }
 func resetDB() {
 	DropAllTables()
