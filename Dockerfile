@@ -1,61 +1,26 @@
-# Development stage with hot reload
-FROM golang:1.24-alpine AS development
-
-# Install air for hot reload
-RUN go install github.com/air-verse/air@latest
-
-# Install migrate CLI for database migrations
-RUN apk add --no-cache curl && \
-    curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz -C /tmp && \
-    mv /tmp/migrate /usr/local/bin/migrate
-
+# Build stage
+FROM golang:1.23-alpine3.19 AS builder
 WORKDIR /app
-
-# Copy go mod files
-COPY go.mod go.sum ./
-
-# Download dependencies
-RUN go mod download
-
-# Copy source code
 COPY . .
+RUN go build -o main cmd/main.go
 
-# Expose port
-EXPOSE 8080
+# Install migrate CLI
+RUN apk add --no-cache curl
+# Corrected: Download the LINUX version
+RUN curl -L https://github.com/golang-migrate/migrate/releases/download/v4.17.1/migrate.linux-amd64.tar.gz | tar xvz
+# The extracted binary is now at /app/migrate.linux-amd64
 
-# Command to run with hot reload
-CMD ["air", "-c", ".air.toml"]
-
-# Production stage
-FROM golang:1.24-alpine AS builder
-
+# Run stage
+FROM alpine:3.19
 WORKDIR /app
-
-# Copy go mod files
-COPY go.mod go.sum ./
-
-# Download dependencies
-RUN go mod download
-
-# Copy source code
-COPY . .
-
-# Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -o main ./cmd/main.go
-
-# Final production stage
-FROM alpine:latest AS production
-
-# Install ca-certificates for HTTPS requests
-RUN apk --no-cache add ca-certificates
-
-WORKDIR /root/
-
-# Copy the binary from builder stage
 COPY --from=builder /app/main .
+# Corrected: Copy the extracted binary and rename it to 'migrate'
+COPY --from=builder /app/migrate ./migrate
+COPY .env .
+COPY start.sh .
+COPY wait-for.sh .
+COPY db/migrations ./db/migrations
 
-# Expose port
-EXPOSE 8080
-
-# Run the binary
-CMD ["./main"]
+# EXPOSE 8080
+CMD [ "/app/main" ]
+ENTRYPOINT [ "/app/start.sh" ]

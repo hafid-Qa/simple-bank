@@ -51,7 +51,7 @@ func LoadConfig(path string) (config Config, err error) {
 
 	config.TestDbSource = fmt.Sprintf("postgresql://%s:%s@%s:%d/%s?sslmode=%s",
 		config.DbUser, config.DbPassword, config.TestDbHost, config.TestDbPort, config.DbName, config.DbSslmode)
-	config.ServerAddress = fmt.Sprintf("%s:%d", config.DbHost, config.Port)
+	config.ServerAddress = fmt.Sprintf("%s:%d", "0.0.0.0", config.Port)
 
 	return
 }
