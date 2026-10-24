@@ -36,7 +36,20 @@ func LoadConfig(path string) (config Config, err error) {
 
 	err = viper.ReadInConfig()
 	if err != nil {
-		return
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return
+		}
+		err = nil
+	}
+
+	for _, key := range []string{
+		"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME",
+		"TEST_DB_HOST", "TEST_DB_PORT", "DB_SSLMODE",
+		"GIN_MODE", "PORT", "SERVER_ADDRESS",
+		"DB_DRIVER", "DB_SOURCE", "TEST_DB_SOURCE",
+		"TOKEN_SYMMETRIC_KEY", "ACCESS_TOKEN_DURATION",
+	} {
+		viper.BindEnv(key)
 	}
 
 	err = viper.Unmarshal(&config)
